@@ -5,8 +5,8 @@
 
 
 function exercicio01() {
-  var  variavel = "valor";
-  return variavel;
+  var  carName = "Volvo";
+  return carName;
 }
 
 module.exports = exercicio01;
