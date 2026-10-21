@@ -96,10 +96,11 @@
     const panelEl = qs('[data-el=panel]', main);
     const fbEl = qs('[data-el=feedback]', main);
     const afterEl = qs('[data-el=after]', main);
+    const saveBtn = qs('[data-act=save]', afterEl);
 
     const panel = root.AnswerPanel.mount(panelEl, {
       targetSeconds: target,
-      onStart() { root.Speech.cancel(); fbEl.innerHTML = ''; afterEl.hidden = true; },
+      onStart() { root.Speech.cancel(); fbEl.innerHTML = ''; afterEl.hidden = true; saveBtn.disabled = false; saveBtn.textContent = '💾 Save attempt'; },
       onDone(ans) {
         lastAnswer = ans;
         lastResult = Scoring.overall(ans.text, q.keyPoints, ans.seconds);

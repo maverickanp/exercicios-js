@@ -96,7 +96,7 @@
     {
       id: 'ph-teamwork', title: 'Teamwork and process', pt: 'Falar de time, agilidade e colaboração.',
       items: [
-        { en: 'We work in two-week sprints with a planning, a retro and daily stand-ups.', pt: '' },
+        { en: 'We work in two-week sprints with sprint planning, a retro and daily stand-ups.', pt: '' },
         { en: 'I paired with a junior developer on the tricky parts.', pt: '"paired with" = fiz pair programming com.' },
         { en: 'I pushed for smaller pull requests, and review time dropped from days to hours.', pt: '"pushed for" = defendi, insisti em.' },
         { en: 'I keep stakeholders in the loop with a short written update twice a week.', pt: '"in the loop" = informados.' },

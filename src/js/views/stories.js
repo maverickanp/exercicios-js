@@ -165,7 +165,7 @@
           fb = Feedback.mount(fbEl);
           const list = stories();
           const st = list.find((x) => x.id === s.id);
-          if (st) { st.rehearsals = (st.rehearsals || 0) + 1; st.best = Math.max(st.best || 0, r.score); saveStories(list); }
+          if (st) { st.rehearsals = (st.rehearsals || 0) + 1; st.best = Math.max(st.best || 0, r.score); saveStories(list); s.rehearsals = st.rehearsals; s.best = st.best; }
           root.App.recordAttempt({ kind: 'story', id: 'story-' + s.id, category: 'story', question: s.title, score: r.score, covered: r.coverage.covered, total: r.coverage.total, words: r.words, seconds: Math.round(r.seconds), fillers: r.fillers.total, mode: ans.mode });
           fbEl.scrollIntoView({ behavior: 'smooth' });
         },
@@ -184,7 +184,11 @@
 
   function buildPitch(p) {
     const parts = [];
-    if (p.role) parts.push(`Sure. I'm a ${p.role.replace(/^(i am|i'm)\s+(a|an)\s+/i, '')}.`);
+    if (p.role) {
+      const role = p.role.replace(/^(?:(?:i am|i'm)\s+)?(?:a|an)\s+/i, '').replace(/[.!?]+$/, '').trim();
+      const art = /^[aeio]/i.test(role) ? 'an' : 'a'; // "UI developer" keeps "a"
+      parts.push(`Sure. I'm ${art} ${role}.`);
+    }
     if (p.now) parts.push(`Today, ${/^i /i.test(p.now) ? p.now : 'I ' + p.now}${/[.!?]$/.test(p.now) ? '' : '.'}`);
     if (p.past) parts.push(`Before that, ${/^i /i.test(p.past) ? p.past : 'I ' + p.past}${/[.!?]$/.test(p.past) ? '' : '.'}`);
     if (p.win) parts.push(`The project I'm proudest of: ${/^i /i.test(p.win) ? p.win : 'I ' + p.win}${/[.!?]$/.test(p.win) ? '' : '.'}`);

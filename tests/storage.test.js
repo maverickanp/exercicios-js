@@ -17,3 +17,10 @@ test('falls back to memory in Node and round-trips JSON', () => {
   Storage.clearAll();
   assert.equal(Storage.keys().length, 0);
 });
+
+test('importAll rejects backups whose root is not an object', () => {
+  assert.throws(() => Storage.importAll('hello'));
+  assert.throws(() => Storage.importAll([1, 2]));
+  assert.throws(() => Storage.importAll(null));
+  assert.equal(Storage.keys().length, 0);
+});

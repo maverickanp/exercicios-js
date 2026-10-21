@@ -87,7 +87,7 @@
       renderCard();
     }
 
-    on(main, 'click', '[data-act=flip]', () => { flipped = !flipped; renderCard(); });
+    on(main, 'click', '[data-act=flip]', (e) => { if (e.target.closest('[data-act=say]')) return; flipped = !flipped; renderCard(); });
     on(main, 'click', '[data-act=say]', (e, el) => { e.stopPropagation(); root.Speech.speak(el.getAttribute('data-text')); });
     on(main, 'click', '[data-rate]', (e, el) => rate(el.getAttribute('data-rate')));
     on(main, 'click', '[data-act=more]', () => {

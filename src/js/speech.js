@@ -4,13 +4,26 @@
   const synth = root.speechSynthesis || null;
   const Recognition = root.SpeechRecognition || root.webkitSpeechRecognition || null;
   let voices = [];
-  let currentUtterance = null;
+  // Identity of the speak() call currently playing; cancel() clears it so
+  // callbacks from superseded utterances are ignored.
+  let currentToken = null;
 
   function loadVoices() { voices = synth ? synth.getVoices() : []; }
   if (synth) {
     loadVoices();
     if (typeof synth.addEventListener === 'function') synth.addEventListener('voiceschanged', loadVoices);
     else synth.onvoiceschanged = loadVoices;
+  }
+
+  // Browsers gate synthesis behind a user gesture: iOS WebKit silently drops
+  // speak() until one speak() has run inside a gesture, and Chrome rejects it
+  // with 'not-allowed' until the page has been interacted with. The views
+  // auto-read questions from a hashchange + timer, outside any gesture, so we
+  // unlock on the first real click (capture runs before the link navigation).
+  if (synth && root.document) {
+    root.document.addEventListener('click', () => {
+      if (!synth.speaking && !synth.pending) synth.speak(new SpeechSynthesisUtterance(''));
+    }, { capture: true, once: true });
   }
 
   function englishVoices() {
@@ -39,27 +52,65 @@
 
   function rate() { const r = Number(settings().rate); return r && r > 0 ? r : 1; }
 
+  // Chrome's network (Google) voices stop a single utterance after ~15 s and
+  // never fire onend (crbug 679437), so long texts are spoken as a chain of
+  // short chunks: one per sentence, split again at commas/spaces when a
+  // sentence is itself too long.
+  const MAX_CHUNK = 160;
+  function chunks(text) {
+    const parts = String(text == null ? '' : text).match(/[^.!?]+[.!?]+["']?|[^.!?]+$/g) || [String(text)];
+    const out = [];
+    parts.forEach((part) => {
+      let s = part.trim();
+      while (s.length > MAX_CHUNK) {
+        let cut = s.lastIndexOf(', ', MAX_CHUNK);
+        if (cut < MAX_CHUNK / 2) cut = s.lastIndexOf(' ', MAX_CHUNK);
+        if (cut < 1) cut = MAX_CHUNK;
+        out.push(s.slice(0, cut + 1).trim());
+        s = s.slice(cut + 1).trim();
+      }
+      if (s) out.push(s);
+    });
+    return out.length ? out : [''];
+  }
+
   function speak(text, opts) {
     opts = opts || {};
     if (!synth) { if (opts.onend) opts.onend(); return null; }
     cancel();
-    const u = new SpeechSynthesisUtterance(String(text));
+    const parts = chunks(text);
     const v = pickVoice();
-    if (v) u.voice = v;
-    u.lang = (v && v.lang) || 'en-US';
-    u.rate = opts.rate || rate();
-    u.pitch = 1;
-    u.onstart = () => { if (opts.onstart) opts.onstart(); };
-    u.onend = () => { currentUtterance = null; if (opts.onend) opts.onend(); };
-    u.onerror = (e) => { currentUtterance = null; if (opts.onend && e.error !== 'interrupted') opts.onend(); };
-    currentUtterance = u;
-    synth.speak(u);
-    return u;
+    const token = { text: String(text) };
+    currentToken = token;
+    const say = (i) => {
+      const u = new SpeechSynthesisUtterance(parts[i]);
+      if (v) u.voice = v;
+      u.lang = (v && v.lang) || 'en-US';
+      u.rate = opts.rate || rate();
+      u.pitch = 1;
+      if (i === 0) u.onstart = () => { if (opts.onstart) opts.onstart(); };
+      u.onend = () => {
+        if (currentToken !== token) return; // cancelled or superseded by a newer speak()
+        if (i + 1 < parts.length) { say(i + 1); return; }
+        currentToken = null;
+        if (opts.onend) opts.onend();
+      };
+      u.onerror = (e) => {
+        if (currentToken !== token) return;
+        if (e.error === 'interrupted' || e.error === 'canceled') return;
+        currentToken = null;
+        if (e.error === 'not-allowed' && root.UI) root.UI.toast('Tap 🔊 to hear it read aloud.');
+        if (opts.onend) opts.onend();
+      };
+      synth.speak(u);
+    };
+    say(0);
+    return token;
   }
 
   function cancel() {
+    currentToken = null;
     if (synth) synth.cancel();
-    currentUtterance = null;
   }
 
   function isSpeaking() { return !!(synth && synth.speaking); }
@@ -106,6 +157,7 @@
       if (hooks.onResult) hooks.onResult(finalText.trim(), interim.trim());
     };
     rec.onerror = (e) => {
+      if (!active) return; // stop() was already called: a late error must not reach the caller
       if (e.error === 'no-speech' || e.error === 'aborted') return; // harmless; onend restarts
       active = false;
       if (hooks.onError) hooks.onError(e.error);
@@ -123,7 +175,7 @@
 
   root.Speech = {
     supported: { tts: !!synth, stt: !!Recognition },
-    englishVoices, pickVoice, speak, cancel, isSpeaking, shadow, listen,
+    englishVoices, pickVoice, speak, cancel, isSpeaking, shadow, listen, chunks,
     isSecure: root.isSecureContext !== false,
   };
 })(window);

@@ -8,7 +8,8 @@
     const intro = D.behavioral.find((b) => b.id === 'bh-tell-me-about-yourself');
     const closing = D.behavioral.find((b) => b.id === 'bh-questions-for-us');
     const behavioral = shuffle(D.behavioral.filter((b) => b.id !== intro.id && b.id !== closing.id)).slice(0, 2);
-    let techPool = D.questions.filter((q) => q.category !== 'behavioral-tech');
+    const allTech = D.questions.filter((q) => q.category !== 'behavioral-tech');
+    let techPool = allTech;
     if (focus && focus !== 'all') techPool = techPool.filter((q) => q.category === focus);
     // Mix categories: take at most 2 per category.
     const perCat = {};
@@ -19,6 +20,9 @@
       perCat[q.category] = (perCat[q.category] || 0) + 1;
       tech.push(q);
     });
+    // A focused pool can be shorter than 4 (testing has 2, efcore 3): fill the
+    // remaining slots from the other categories so the mock is always 8 questions.
+    if (tech.length < 4) tech.push(...shuffle(allTech.filter((q) => !tech.includes(q))).slice(0, 4 - tech.length));
     const mark = (q, cat) => Object.assign({ category: cat || q.category }, q);
     return [mark(intro, 'behavioral'), mark(behavioral[0], 'behavioral')].concat(tech.slice(0, 2).map((q) => mark(q)), [mark(behavioral[1], 'behavioral')], tech.slice(2).map((q) => mark(q)), [mark(closing, 'behavioral')]);
   }

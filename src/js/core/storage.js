@@ -19,9 +19,12 @@
   }
 
   function get(key, fallback) {
+    const mk = PREFIX + key;
     const ls = backend();
     try {
-      const raw = ls ? ls.getItem(PREFIX + key) : memory[PREFIX + key];
+      // A memory shadow exists only when the last write to localStorage failed
+      // (quota); it is newer than whatever localStorage still holds.
+      const raw = mk in memory ? memory[mk] : (ls ? ls.getItem(mk) : null);
       if (raw == null) return fallback;
       return JSON.parse(raw);
     } catch (e) {
@@ -30,12 +33,13 @@
   }
 
   function set(key, value) {
+    const mk = PREFIX + key;
     const ls = backend();
     const raw = JSON.stringify(value);
     try {
-      if (ls) ls.setItem(PREFIX + key, raw); else memory[PREFIX + key] = raw;
+      if (ls) { ls.setItem(mk, raw); delete memory[mk]; } else memory[mk] = raw;
     } catch (e) {
-      memory[PREFIX + key] = raw;
+      memory[mk] = raw;
     }
     return value;
   }
@@ -70,7 +74,8 @@
   }
 
   function importAll(dump) {
-    Object.keys(dump || {}).forEach((k) => set(k, dump[k]));
+    if (!dump || typeof dump !== 'object' || Array.isArray(dump)) throw new Error('Invalid backup');
+    Object.keys(dump).forEach((k) => set(k, dump[k]));
   }
 
   function clearAll() {

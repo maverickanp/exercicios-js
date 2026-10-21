@@ -45,9 +45,10 @@
     let last = null; let lastAns = null; let fb = null;
     const fbEl = qs('[data-el=feedback]', main);
     const afterEl = qs('[data-el=after]', main);
+    const saveBtn = qs('[data-act=save]', afterEl);
     const panel = root.AnswerPanel.mount(qs('[data-el=panel]', main), {
       targetSeconds: 75,
-      onStart() { root.Speech.cancel(); fbEl.innerHTML = ''; afterEl.hidden = true; },
+      onStart() { root.Speech.cancel(); fbEl.innerHTML = ''; afterEl.hidden = true; saveBtn.disabled = false; saveBtn.textContent = '💾 Save attempt'; },
       onDone(ans) {
         lastAns = ans;
         last = Scoring.overall(ans.text, s.keyPoints, ans.seconds);

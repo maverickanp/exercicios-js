@@ -30,12 +30,15 @@
     now = now == null ? Date.now() : now;
     const p = progress || empty();
     let streak = 0;
-    let cursor = now;
+    // Walk back by calendar day (not by 24h) so DST transition days are
+    // neither skipped nor double-counted; pin to noon to stay clear of them.
+    const d = new Date(now);
+    d.setHours(12, 0, 0, 0);
     // Today counts if active; otherwise start counting from yesterday.
-    if (!p.days[dayKey(cursor)]) cursor -= 24 * 60 * 60 * 1000;
-    while (p.days[dayKey(cursor)]) {
+    if (!p.days[dayKey(d.getTime())]) d.setDate(d.getDate() - 1);
+    while (p.days[dayKey(d.getTime())]) {
       streak += 1;
-      cursor -= 24 * 60 * 60 * 1000;
+      d.setDate(d.getDate() - 1);
     }
     return streak;
   }

@@ -123,7 +123,7 @@
       followUps: ['What happens if you forget to dispose a DbContext?', 'Why should HttpClient usually not be disposed per request?', 'What does GC.SuppressFinalize do?'],
       vocab: [{ term: 'deterministic', meaning: 'happens at a known, predictable moment' }, { term: 'scarce resource', meaning: 'something limited, like connections' }],
       pitfalls: ['Confusing Dispose with freeing managed memory.'],
-      pt: 'Palavra-chave: deterministic. Pronuncie "de-ter-MI-nis-tic". Se o entrevistador perguntar sobre HttpClient, responda sobre IHttpClientFactory e socket exhaustion.',
+      pt: 'Palavra-chave: deterministic. Pronuncie "de-ter-mi-NIS-tic" (tônica em NIS). Se o entrevistador perguntar sobre HttpClient, responda sobre IHttpClientFactory e socket exhaustion.',
     },
     {
       id: 'cs-linq', category: 'csharp', level: 1,
@@ -178,7 +178,7 @@
       q: 'How do you handle exceptions in a .NET application? What are best practices?',
       keyPoints: [
         { label: 'Catch only what you can handle; let the rest bubble up', terms: ['bubble', 'propagate', 'only what you can handle', "can't handle", 'rethrow'] },
-        { label: 'Use throw; not throw ex; to keep the stack trace', terms: ['stack trace', 'throw;', 'rethrow'] },
+        { label: 'Use throw; not throw ex; to keep the stack trace', terms: ['stack trace', 'stacktrace', 'rethrow', 're-throw', 'bare throw', 'empty throw', 'throw semicolon', 'exceptiondispatchinfo'] },
         { label: 'Global handling: middleware / ProblemDetails', terms: ['middleware', 'problemdetails', 'problem details', 'global', 'exception handler'] },
         { label: 'Exceptions are expensive; not for control flow', terms: ['control flow', 'expensive', 'validation', 'result'] },
         { label: 'Custom exceptions / specific types; logging with context', terms: ['custom exception', 'specific', 'log', 'logging'] },
@@ -195,7 +195,7 @@
       keyPoints: [
         { label: 'Reference (or struct) types with value-based equality', terms: ['value equality', 'value-based', 'structural equality', 'compared by value'] },
         { label: 'Immutable by default with init-only properties', terms: ['immutable', 'init'] },
-        { label: 'with-expressions for non-destructive mutation', terms: ['with', 'non-destructive', 'copy with changes'] },
+        { label: 'with-expressions for non-destructive mutation', terms: ['with-expression', 'with expression', 'with keyword', 'non-destructive', 'non destructive', 'copy with changes', 'modified copy'] },
         { label: 'Good for DTOs, messages, value objects', terms: ['dto', 'message', 'value object', 'command', 'event'] },
         { label: 'Positional syntax, ToString and deconstruction for free', terms: ['positional', 'tostring', 'deconstruct', 'for free', 'generated'] },
       ],
@@ -210,8 +210,8 @@
       q: 'What are nullable reference types and how do you deal with null in modern C#?',
       keyPoints: [
         { label: 'Compiler flow analysis warns about possible null', terms: ['warning', 'warns', 'flow analysis', 'compiler', 'static analysis'] },
-        { label: 'string? means may be null; string means not null', terms: ['question mark', 'string?', 'annotate', 'annotation'] },
-        { label: 'Null-conditional ?. and null-coalescing ??', terms: ['?.', '??', 'null-conditional', 'null-coalescing', 'null coalescing'] },
+        { label: 'string? means may be null; string means not null', terms: ['question mark', 'nullable string', 'string question', 'may be null', 'can be null', 'might be null', 'never null', 'non-nullable', 'non nullable', 'annotate', 'annotation'] },
+        { label: 'Null-conditional ?. and null-coalescing ??', terms: ['null-conditional', 'null conditional', 'null-coalescing', 'null coalescing', 'coalesc', 'mark dot', 'double question', 'two question marks', 'elvis'] },
         { label: 'ArgumentNullException.ThrowIfNull / guard clauses', terms: ['throwifnull', 'guard', 'guard clause'] },
         { label: 'Still runtime: not a guarantee; null-forgiving ! is a smell', terms: ['runtime', 'not a guarantee', 'forgiving', 'exclamation', 'damn it'] },
       ],
@@ -587,7 +587,7 @@
       followUps: ['What is CSRF and does it affect APIs?', 'How do you store passwords?'],
       vocab: [{ term: 'least privilege', meaning: 'only the access that is strictly needed' }, { term: 'encode', meaning: 'escape text so it is not interpreted as code' }],
       pitfalls: ['Only mentioning authentication.'],
-      pt: 'Pronúncia de "vulnerability": vul-ne-ra-BI-li-ty (5 sílabas; brasileiros tendem a engolir). Treine no Phrasebook.',
+      pt: 'Pronúncia de "vulnerability": vul-ne-ra-BI-li-ty (6 sílabas; brasileiros tendem a engolir uma). Treine no Phrasebook.',
     },
     {
       id: 'dotnet-background', category: 'aspnet', level: 2,
@@ -615,7 +615,7 @@
         { label: 'Log levels, no sensitive data, cost of noisy logs', terms: ['level', 'sensitive', 'noise', 'noisy', 'cost', 'volume'] },
         { label: 'Health checks, dashboards, alerts on SLOs', terms: ['health check', 'dashboard', 'alert', 'slo', 'sli'] },
       ],
-      model: "I log through ILogger of T, which is an abstraction, and plug in Serilog or the OpenTelemetry exporter underneath. The key practice is structured logging: message templates with named properties, like 'Order {OrderId} failed for {CustomerId}', so the logs are queryable instead of free text. Logs are only one pillar; I also want metrics, request rate, error rate, latency percentiles, and distributed traces so I can follow one request across services. OpenTelemetry gives me all three with one setup, and .NET emits traces for HTTP, EF Core and HttpClient out of the box. A correlation or trace ID travels in headers and appears in every log line. I'm careful with levels: debug is off in production, information is for business events, and warnings and errors should be actionable, because noisy logs are expensive and get ignored. On top of that: health check endpoints for the orchestrator, dashboards, and alerts tied to SLOs rather than to every exception.",
+      model: "I log through ILogger of T, which is an abstraction, and plug in Serilog or the OpenTelemetry exporter underneath. The key practice is structured logging: message templates with named properties, like 'Order {OrderId} failed for {CustomerId}', so the logs are queryable instead of free text. Logs are only one pillar; I also want metrics, request rate, error rate, latency percentiles, and distributed traces so I can follow one request across services. OpenTelemetry gives me all three with one setup, and .NET emits traces for ASP.NET Core and HttpClient out of the box; for EF Core I add the OpenTelemetry EF Core instrumentation package, or rely on the database driver's own ActivitySource, like Npgsql's. A correlation or trace ID travels in headers and appears in every log line. I'm careful with levels: debug is off in production, information is for business events, and warnings and errors should be actionable, because noisy logs are expensive and get ignored. On top of that: health check endpoints for the orchestrator, dashboards, and alerts tied to SLOs rather than to every exception.",
       followUps: ['What is the difference between a metric and a log?', 'What is sampling in tracing?'],
       vocab: [{ term: 'actionable', meaning: 'something you can act on' }, { term: 'out of the box', meaning: 'without extra setup' }],
       pitfalls: ['String interpolation inside log messages instead of templates.'],

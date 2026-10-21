@@ -69,3 +69,19 @@ test('overall score rewards coverage and penalises fillers and short answers', (
   assert.equal(b.length, 'too short');
   assert.equal(g.score, 100);
 });
+
+test('percent signs are spoken as "percent" so results with numbers get credit', () => {
+  assert.equal(S.normalize('we cut it by 40%'), 'we cut it by 40 percent');
+  assert.ok(S.containsTerm(S.normalize('latency dropped 30%.'), 'percent'));
+});
+
+test('common prepositions do not give credit for code keywords (with-expressions)', () => {
+  const q = require('../src/data/questions.js').find((x) => x.id === 'cs-records');
+  const kp = q.keyPoints.find((k) => /with-expressions/.test(k.label));
+  assert.ok(!S.coverage('A record is a reference type with value based equality.', [kp]).items[0].covered);
+  assert.ok(S.coverage('I use a with-expression to get a modified copy.', [kp]).items[0].covered);
+  const ex = require('../src/data/questions.js').find((x) => x.id === 'cs-exceptions');
+  const throwKp = ex.keyPoints.find((k) => /stack trace/.test(k.label));
+  assert.ok(!S.coverage('I throw an ArgumentException when the input is invalid.', [throwKp]).items[0].covered);
+  assert.ok(S.coverage('I use a bare throw to keep the stack trace.', [throwKp]).items[0].covered);
+});

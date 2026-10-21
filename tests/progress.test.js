@@ -51,3 +51,15 @@ test('stats aggregates attempts by category', () => {
   assert.equal(s.byCategory.csharp.avg, 70);
   assert.equal(s.byCategory.behavioral.count, 1);
 });
+
+test('streak walks by calendar day, so DST transition days are neither skipped nor double-counted', () => {
+  const local = (y, m, d, h, mi) => new Date(y, m - 1, d, h, mi || 0).getTime();
+  let p = P.empty();
+  p = P.touch(p, 'drill', local(2026, 3, 29, 12)); // 23h day in European DST zones
+  p = P.touch(p, 'drill', local(2026, 3, 30, 0, 10));
+  assert.equal(P.currentStreak(p, local(2026, 3, 30, 0, 30)), 2);
+  let q = P.empty();
+  q = P.touch(q, 'drill', local(2026, 10, 24, 12));
+  q = P.touch(q, 'drill', local(2026, 10, 25, 12)); // 25h day
+  assert.equal(P.currentStreak(q, local(2026, 10, 25, 23, 30)), 2);
+});
